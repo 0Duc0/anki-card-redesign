@@ -6,14 +6,15 @@ import time
 
 from aqt import mw
 from aqt.operations import QueryOp
-from aqt.qt import (QAction, QComboBox, QDialog, QFileDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel,
-                    QPushButton, QVBoxLayout)
+from aqt.qt import (QAction, QCheckBox, QComboBox, QDialog, QFileDialog, QFormLayout, QGroupBox, QHBoxLayout,
+                    QInputDialog, QLabel, QPushButton, Qt, QToolButton, QVBoxLayout, QWidget)
 from aqt.utils import askUser, showInfo, showWarning
 
-from . import runner, updater
+from . import deckupdate, runner, updater
 
 ADDON_DIR = os.path.dirname(__file__)
 USER_DIR = os.path.join(ADDON_DIR, "user_files")
+DOWNLOADS = os.path.join(USER_DIR, "downloads")
 LANG_LABELS = {"cn": "Chinese (CC-CEDICT)", "jp": "Japanese (JMdict)", "vn": "Vietnamese (v8)"}
 
 
@@ -121,18 +122,158 @@ def restore(parent) -> None:
     showInfo("The previous card layout is back.")
 
 
+class _DeckChoice(QWidget):
+    """Shows where new words go (chosen automatically); "Change…" picks another deck."""
+
+    def __init__(self, parent) -> None:
+        super().__init__(parent)
+        row = QHBoxLayout(self)
+        row.setContentsMargins(0, 0, 0, 0)
+        self.label = QLabel("–")
+        self.label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        change = QPushButton("Change…")
+        change.setAutoDefault(False)
+        change.clicked.connect(self.change)
+        row.addWidget(self.label, 1)
+        row.addWidget(change)
+        self.did = 0
+
+    def set_deck(self, did: int) -> None:
+        self.did = int(did)
+        self.label.setText(self.name().replace("::", " › "))
+
+    def name(self) -> str:
+        return mw.col.decks.name(self.did) if self.did else ""
+
+    def currentData(self) -> int:     # same call as the old combo box
+        return self.did
+
+    def change(self) -> None:
+        names = sorted((d.name for d in mw.col.decks.all_names_and_ids(include_filtered=False)), key=str.lower)
+        current = names.index(self.name()) if self.name() in names else 0
+        name, ok = QInputDialog.getItem(self, "New words go to", "Deck:", names, current, False)
+        if ok and name:
+            self.set_deck(mw.col.decks.id_for_name(name))
+
+
+class AutoUpdatePanel(QGroupBox):
+    """Check GitHub for new deck updates and apply them with one button."""
+
+    def __init__(self, parent) -> None:
+        super().__init__("Deck updates")
+        self.parent_dialog = parent
+        self.items: list = []
+        self.boxes: list = []
+        lay = QVBoxLayout(self)
+        intro = QLabel("Better meanings, more example sentences and new words for your Vietnamese, Japanese and "
+                       "Chinese decks. Your own notes, review history and due dates are never touched, and fields "
+                       "you edited yourself stay as they are.")
+        intro.setWordWrap(True)
+        lay.addWidget(intro)
+        self.rows = QVBoxLayout()
+        lay.addLayout(self.rows)
+        self.status = QLabel("")
+        self.status.setWordWrap(True)
+        lay.addWidget(self.status)
+        buttons = QHBoxLayout()
+        self.check_btn = QPushButton("Check for updates")
+        self.update_btn = QPushButton("Back up and update")
+        self.update_btn.setEnabled(False)
+        self.check_btn.clicked.connect(self.check)
+        self.update_btn.clicked.connect(self.update)
+        buttons.addWidget(self.check_btn)
+        buttons.addWidget(self.update_btn)
+        buttons.addStretch(1)
+        lay.addLayout(buttons)
+
+    def _clear_rows(self) -> None:
+        while self.rows.count():
+            item = self.rows.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        self.boxes = []
+
+    def check(self) -> None:
+        self.check_btn.setEnabled(False)
+        self.status.setText("Checking GitHub…")
+
+        def done(items):
+            self.check_btn.setEnabled(True)
+            self.items = items
+            self._clear_rows()
+            if not items:
+                self.status.setText("No updates for the decks in this collection.")
+                return
+            for item in items:
+                box = QCheckBox(f"{item.label} ({item.release}) – {deckupdate.describe(item)}")
+                box.setChecked(item.has_work)
+                box.setEnabled(item.has_work)
+                if item.plan is not None:
+                    kept = sum(item.plan.kept_your_edit.values())
+                    tip = [f"Note type: {item.plan.model_name}", f"Notes found: {item.plan.matched:,}"]
+                    if kept:
+                        tip.append(f"Left as you edited them: {kept:,} fields")
+                    if item.plan.new_notes:
+                        tip.append(f"New words go to: {item.deck_name.replace('::', ' › ')}")
+                    box.setToolTip("\n".join(tip))
+                self.rows.addWidget(box)
+                self.boxes.append(box)
+            work = [i for i in items if i.has_work]
+            self.update_btn.setEnabled(bool(work))
+            self.status.setText("Everything is up to date." if not work else
+                                "Press <b>Back up and update</b>. Anki makes a full backup first.")
+
+        def failed(err):
+            self.check_btn.setEnabled(True)
+            self.status.setText(str(err))
+
+        QueryOp(parent=self, op=lambda col: deckupdate.check(col, DOWNLOADS), success=done).failure(failed) \
+            .with_progress("Checking for deck updates…").run_in_background()
+
+    def update(self) -> None:
+        chosen = [i for i, b in zip(self.items, self.boxes) if b.isChecked() and i.has_work]
+        if not chosen:
+            return
+        names = ", ".join(i.label for i in chosen)
+        if not askUser(f"Update {names}?\n\nAnki makes a full backup first. You can undo each update later "
+                       "(Advanced › Undo an update…).", parent=self):
+            return
+
+        def op(col):
+            mw.create_backup_now()       # raises on failure: nothing is written without a backup
+            return [deckupdate.run(col, item, USER_DIR, progress=_progress(f"Updating {item.label}")) for item in chosen]
+
+        def done(results):
+            mw.reset()
+            self.update_btn.setEnabled(False)
+            lines = []
+            for r in results:
+                line = f"{r['language']}: {r.get('changed_notes', 0):,} notes improved, {r.get('added_notes', 0):,} new words"
+                if r.get("layout", {}).get("templates_updated"):
+                    line += ", new card layout"
+                lines.append(line)
+            showInfo("Done.\n\n" + "\n".join(lines) + "\n\nSync afterwards as usual.", parent=self)
+            self.check()
+
+        def failed(err):
+            mw.reset()
+            showWarning(f"The update stopped:\n\n{err}\n\nAdvanced › Undo an update… puts back what was written; "
+                        "Anki's backup from the start is also there.", parent=self)
+
+        QueryOp(parent=mw, op=op, success=done).failure(failed).with_progress(
+            "Backing up, then updating…").run_in_background()
+
+
 class UpdatePanel(QGroupBox):
     """Deck update: pick a content pack, check it, back up and apply, or undo an earlier update."""
 
     def __init__(self, parent) -> None:
-        super().__init__("Deck update (new meanings, example sentences, new words)")
+        super().__init__("Update from a file")
         self.parent_dialog = parent
         self.pack = None
         self.plan = None
         lay = QVBoxLayout(self)
-        intro = QLabel("Apply an update file (<i>*.json.gz</i>) from the anki-language-decks project. Only fields "
-                       "you have not changed yourself are updated; your notes, mnemonics, review history and "
-                       "due dates are never touched. New words go into the deck chosen below.")
+        intro = QLabel("Apply an update file (<i>*.json.gz</i>) you downloaded yourself.")
         intro.setWordWrap(True)
         lay.addWidget(intro)
         form = QFormLayout()
@@ -144,8 +285,7 @@ class UpdatePanel(QGroupBox):
         row.addWidget(self.file_label, 1)
         row.addWidget(pick)
         form.addRow("Update:", row)
-        self.deck = QComboBox()
-        self.deck.setEnabled(False)
+        self.deck = _DeckChoice(self)
         form.addRow("New words go to:", self.deck)
         lay.addLayout(form)
         self.status = QLabel("")
@@ -184,13 +324,7 @@ class UpdatePanel(QGroupBox):
         self.status.setText("Press <b>Check</b>: it compares the update with your notes and changes nothing.")
 
     def _fill_decks(self, model_id: int) -> None:
-        self.deck.clear()
-        default = updater.default_deck(mw.col, self.pack, model_id)
-        for d in sorted(mw.col.decks.all_names_and_ids(include_filtered=False), key=lambda d: d.name.lower()):
-            self.deck.addItem(d.name, int(d.id))
-            if int(d.id) == default:
-                self.deck.setCurrentIndex(self.deck.count() - 1)
-        self.deck.setEnabled(True)
+        self.deck.set_deck(updater.default_deck(mw.col, self.pack, model_id))
 
     def check(self) -> None:
         pack = self.pack
@@ -228,7 +362,7 @@ class UpdatePanel(QGroupBox):
             return
         p, pack, deck_id = self.plan, self.pack, self.deck.currentData()
         if not askUser(f"Apply \u201c{p.title}\u201d?\n\nAnki makes a full backup first. {len(p.to_change):,} notes are "
-                       f"improved and {len(p.new_notes):,} new words go to \u201c{self.deck.currentText()}\u201d.\n\n"
+                       f"improved and {len(p.new_notes):,} new words go to \u201c{self.deck.name()}\u201d.\n\n"
                        "Review history, due dates and your own notes stay as they are. You can undo the update "
                        "later with \u201cUndo an update…\u201d.", parent=self):
             return
@@ -283,17 +417,30 @@ def open_dialog() -> None:
         return
     d = QDialog(mw)
     d.setWindowTitle("Card redesign")
-    d.setMinimumWidth(620)
+    d.setMinimumWidth(640)
     lay = QVBoxLayout(d)
+    lay.addWidget(AutoUpdatePanel(d))
+
+    more = QToolButton()
+    more.setText("Advanced")
+    more.setCheckable(True)
+    more.setAutoRaise(True)
+    more.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+    more.setArrowType(Qt.ArrowType.RightArrow)
+    lay.addWidget(more)
+    advanced = QWidget()
+    adv = QVBoxLayout(advanced)
+    adv.setContentsMargins(0, 0, 0, 0)
+    adv.addWidget(UpdatePanel(d))
     layout_box = QGroupBox("Card layout")
     box = QVBoxLayout(layout_box)
     combo = QComboBox()
     for key, label in LANG_LABELS.items():
         combo.addItem(label, key)
     box.addWidget(combo)
-    text = QLabel("1. <b>Dry run</b>: checks every note and writes a report. Changes nothing.<br>"
-                  "2. <b>Back up and apply</b>: makes a backup, cleans the notes, installs the new layout.<br>"
-                  "3. <b>Restore old layout</b>: puts back a saved card layout if you don't like the new one.")
+    text = QLabel("Deck updates install the layout when needed. Here you can run it on its own:<br>"
+                  "<b>Dry run</b> checks every note and writes a report · <b>Back up and apply</b> cleans the notes "
+                  "and installs the layout · <b>Restore old layout</b> puts back a saved layout.")
     text.setWordWrap(True)
     box.addWidget(text)
     row = QHBoxLayout()
@@ -301,13 +448,23 @@ def open_dialog() -> None:
                       ("Back up and apply", lambda: (d.accept(), apply(combo.currentData()))),
                       ("Restore old layout", lambda: restore(d))):
         b = QPushButton(label)
+        b.setAutoDefault(False)
         b.clicked.connect(fn)
         row.addWidget(b)
     box.addLayout(row)
-    lay.addWidget(layout_box)
-    lay.addWidget(UpdatePanel(d))
+    adv.addWidget(layout_box)
+    advanced.setVisible(False)
+    lay.addWidget(advanced)
+
+    def toggle(on: bool) -> None:
+        more.setArrowType(Qt.ArrowType.DownArrow if on else Qt.ArrowType.RightArrow)
+        advanced.setVisible(on)
+        d.adjustSize()
+
+    more.toggled.connect(toggle)
     lay.addStretch(1)               # extra height goes below the boxes, not into them
     close = QPushButton("Close")
+    close.setAutoDefault(False)
     close.clicked.connect(d.reject)
     bottom = QHBoxLayout()
     bottom.addStretch(1)

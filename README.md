@@ -26,20 +26,21 @@ Design notes: [docs/design.md](docs/design.md) · per-language plans: [Chinese](
 
 ![Card redesign dialog](docs/screenshots/dialog.png)
 
-*Tools › Card redesign…* has two parts.
+*Tools › Card redesign…*
 
-**Card layout** – *Dry run* checks every note and writes a report (changes nothing); *Back up and apply* makes
-a full Anki backup, cleans the note contents and installs the layout; *Restore old layout* puts back the saved
-templates.
+1. **Check for updates** – looks at the newest release of
+   [anki-language-decks](https://github.com/0Duc0/anki-language-decks/releases/latest) and downloads the
+   update for each language you have (nothing else). It compares the update with your notes and shows what
+   would change. Nothing is written.
+2. **Back up and update** – Anki makes a full backup first. Then, per language, the card layout is installed
+   if it isn't current yet, the fields are updated and new words are added.
 
-**Deck update** – applies an update file from
-[anki-language-decks](https://github.com/0Duc0/anki-language-decks/releases):
+New words go to the deck the update names; if your decks are named differently (e.g. *Tiếng Việt* instead of
+*Vietnamese*), the deck with the same ending is used (e.g. *…::99 Dictionary Reference*), otherwise the deck
+that holds most of that language's cards. Hover over a language to see the deck.
 
-1. *Choose file…* – e.g. `vietnamese-update-2026-11-20.json.gz`.
-2. *Check* – compares the update with your collection and shows what would change. Nothing is written.
-3. *Back up and apply* – Anki makes a full backup first; then the fields are updated and new words are added to
-   the deck you picked.
-4. *Undo an update…* – puts the fields back from the undo file written during the update.
+**Advanced** holds *Update from a file…* (for an update file you downloaded yourself, with *Undo an update…*)
+and the card-layout tools (*Dry run*, *Back up and apply*, *Restore old layout*).
 
 ### Why the updater is safe
 

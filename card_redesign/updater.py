@@ -177,15 +177,41 @@ def plan(col, pack: dict, sample: int = 12) -> Plan:
 
 
 def default_deck(col, pack: dict, model_id: int) -> int:
-    """The deck named in the pack if it exists, else the deck holding most cards of the note type."""
-    wanted = pack.get("new_note_deck") or ""
+    """Where new words go, without asking.
+
+    1. the deck named in the update, if it exists;
+    2. else the deck whose name ends like it (e.g. "…::Vietnamese Optimized Dictionary::99 Dictionary Reference"
+       when your top deck is called "Tiếng Việt" instead of "Vietnamese"), preferring the deck tree that
+       holds most cards of the note type;
+    3. else the deck holding most cards of the note type.
+    """
+    wanted = str(pack.get("new_note_deck") or "")
     if wanted:
         d = col.decks.by_name(wanted)
-        if d:
+        if d and not d.get("dyn"):
             return int(d["id"])
-    did = col.db.scalar("select c.did from cards c join notes n on n.id = c.nid where n.mid = ? "
-                        "group by c.did order by count() desc limit 1", model_id)
-    return int(did or 1)
+    counts = dict(col.db.all("select c.did, count() from cards c join notes n on n.id = c.nid where n.mid = ? "
+                             "group by c.did", model_id))
+    names = {int(d.id): d.name for d in col.decks.all_names_and_ids(include_filtered=False)}
+    if wanted:
+        want = [p.casefold() for p in wanted.split("::")]
+        best = None
+        for did, name in names.items():
+            parts = [p.casefold() for p in name.split("::")]
+            same = 0
+            while same < min(len(parts), len(want)) and parts[-1 - same] == want[-1 - same]:
+                same += 1
+            if not same:
+                continue
+            tree = sum(n for d, n in counts.items() if names.get(d, "").split("::")[0] == name.split("::")[0])
+            score = (same, tree)
+            if best is None or score > best[0]:
+                best = (score, did)
+        if best:
+            return best[1]
+    if counts:
+        return int(max(counts, key=counts.get))
+    return 1
 
 
 @dataclass
