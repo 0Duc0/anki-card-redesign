@@ -1,0 +1,84 @@
+<main class="cr cr-cn cr-back {{SCRIPT}}{{#ScriptDiff}} sd-{{ScriptDiff}}{{/ScriptDiff}}">
+  <header class="cr-head">
+    {{MODE}}
+{{WORDS}}    <div class="cr-read cr-read-pinyin">
+      <span class="cr-py">{{PinyinMarked}}</span>
+    </div>
+    <div class="cr-read cr-read-audio">
+      <span class="cr-play">{{#HumanAudio}}{{HumanAudio}}{{/HumanAudio}}{{^HumanAudio}}{{tts zh_CN:Simplified}}{{/HumanAudio}}</span>
+      {{#POS}}<span class="cr-tag">{{POS}}</span>{{/POS}}
+    </div>
+    {{#AlternativeHumanAudioHTML}}<div class="cr-alts">{{AlternativeHumanAudioHTML}}</div>{{/AlternativeHumanAudioHTML}}
+    {{FORMDIFF}}
+  </header>
+
+  {{#DefinitionsHTML}}<section class="cr-meanings">{{DefinitionsHTML}}</section>{{/DefinitionsHTML}}
+  {{^DefinitionsHTML}}{{#MeaningPromptHTML}}<section class="cr-meanings">{{MeaningPromptHTML}}</section>{{/MeaningPromptHTML}}{{/DefinitionsHTML}}
+
+  {{#OrthographyHTML}}<section class="cr-spell"><h2 class="cr-h">Other spellings</h2>{{OrthographyHTML}}</section>{{/OrthographyHTML}}
+
+  {{#ExampleSentence}}<section class="cr-examples">{{ExampleSentence}}</section>{{/ExampleSentence}}
+
+  {{#Notizen}}<section class="cr-notes"><h2 class="cr-h">Notizen</h2>{{Notizen}}</section>{{/Notizen}}
+  {{#UserMnemonic}}<section class="cr-notes"><h2 class="cr-h">Mnemonic</h2>{{UserMnemonic}}</section>{{/UserMnemonic}}
+
+  <details class="cr-more">
+    <summary>More</summary>
+    {{#ClassifiersHTML}}<section><h3>Classifiers</h3><ul>{{ClassifiersHTML}}</ul></section>{{/ClassifiersHTML}}
+    {{#NotesHTML}}<section><h3>Pronunciation notes</h3><ul>{{NotesHTML}}</ul></section>{{/NotesHTML}}
+    <section class="cr-strokes">{{STROKES}}</section>
+    {{#LookupHTML}}<section><h3>Dictionary links</h3>{{LookupHTML}}</section>{{/LookupHTML}}
+    {{#RareUnicodeHTML}}<section><h3>Rare Unicode</h3>{{RareUnicodeHTML}}</section>{{/RareUnicodeHTML}}
+    {{#RawCEDICT}}<details class="cr-raw"><summary>Raw CC-CEDICT</summary><pre>{{RawCEDICT}}</pre></details>{{/RawCEDICT}}
+  </details>
+
+  <footer class="cr-foot">
+    {{#MetadataHTML}}<div class="cr-level">{{MetadataHTML}}</div>{{/MetadataHTML}}
+    <div class="cr-src-line">Sources: {{#HumanAudioSourceHTML}}word audio {{HumanAudioSourceHTML}} · {{/HumanAudioSourceHTML}}{{#ExampleTranslation}}examples {{ExampleTranslation}} · {{/ExampleTranslation}}dictionary CC-CEDICT (CC BY-SA 4.0)</div>
+  </footer>
+    <script>
+    (function () {
+      /* one simplified word, several traditional forms with different meanings (复合 = 復合 / 複合):
+         show every real form in the head with a short meaning; rare "variant of" forms are left out */
+      var roots = document.querySelectorAll(".cr-back"), root = roots[roots.length - 1];
+      if (!root) return;
+      var defs = root.querySelector(".cr-defs"), words = root.querySelector(".cr-words");
+      if (!defs || !words) return;
+      var forms = [], cur = null;
+      Array.from(defs.children).forEach(function (el) {
+        if (el.classList.contains("r-form")) {
+          var sp = el.querySelector('[lang="zh-Hant"]');
+          cur = { f: sp ? sp.textContent.trim() : "", lis: [] };
+          forms.push(cur);
+        } else if (cur && el.tagName === "SECTION") {
+          el.querySelectorAll("li").forEach(function (li) { cur.lis.push(li.textContent.trim()); });
+        }
+      });
+      var VAR = /^((old|archaic|ancient|Japanese|erroneous) )*variant of |^see /i;
+      var COMMON = "%BIG5%";   /* the 5,401 common characters of Taiwan's Big5 level 1 */
+      var main0 = (words.querySelector('.cr-w [lang="zh-Hant"]') || {}).textContent || "";
+      forms = forms.filter(function (g) {
+        var common = g.f.trim() === main0.trim() || Array.from(g.f).every(function (c) { return COMMON.indexOf(c) >= 0; });
+        return g.f && common && g.lis.length && !g.lis.every(function (t) { return VAR.test(t); });
+      });
+      if (forms.length < 2) return;
+      var row = words.querySelector('.cr-w [lang="zh-Hant"]');
+      row = row && row.closest(".cr-w");
+      if (!row) return;
+      function gloss(g) {
+        var t = (g.lis.filter(function (x) { return !VAR.test(x); })[0] || "").split(/[;；]/)[0].replace(/^\([^)]*\)\s*/, "");
+        return t.length > 28 ? t.slice(0, 27) + "…" : t;
+      }
+      var main = row.querySelector('[lang="zh-Hant"]').textContent.trim(), html = "";
+      forms.forEach(function (g) {
+        if (g.f === main) {
+          row.insertAdjacentHTML("beforeend", '<span class="cr-w-g">' + gloss(g) + "</span>");
+        } else {
+          html += '<div class="cr-w cr-w-alt"><small>or</small><span class="cr-hz" lang="zh-Hant">' + g.f +
+                  '</span><span class="cr-w-g">' + gloss(g) + "</span></div>";
+        }
+      });
+      row.insertAdjacentHTML("afterend", html);
+    })();
+    </script>
+</main>

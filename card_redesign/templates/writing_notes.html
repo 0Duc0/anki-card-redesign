@@ -1,0 +1,37 @@
+<details class="cr-wn" hidden><summary>Writing note</summary><div class="cr-wn-body"></div></details>
+<script>
+(function () {
+  /* documented differences: print vs handwriting, Taiwan vs mainland standards (+ stroke counts, Chinese) */
+  var N = %NOTES%, S = %STROKES%, LANG = "%LANG%";
+  var roots = document.querySelectorAll(".cr-back");
+  var root = roots[roots.length - 1];
+  if (!root) return;
+  var box = root.querySelector(".cr-wn"), words = root.querySelector(".cr-words");
+  if (!box || !words) return;
+  var hant = words.querySelector('[lang="zh-Hant"]'), hans = words.querySelector('[lang="zh-Hans"]');
+  var a = LANG === "jp" ? words.textContent : (hant ? hant.textContent : words.textContent);
+  var b = LANG === "jp" ? a : (hans ? hans.textContent : a);
+  var pl = LANG === "jp" ? "ja" : "zh-Hans", html = "", seen = {};
+  function pair(ch, l1, t1, l2, t2, cls) {
+    return '<div class="cr-wn-pair"><div><span class="cr-wn-c' + (cls || "") + '" lang="' + l1 + '">' + ch +
+      '</span><span class="cr-wn-l">' + t1 + '</span></div><div><span class="cr-wn-c" lang="' + l2 + '">' + ch +
+      '</span><span class="cr-wn-l">' + t2 + '</span></div></div>';
+  }
+  Array.from(a).forEach(function (ch) {
+    if (seen[ch] || b.indexOf(ch) < 0) return;
+    seen[ch] = 1;
+    var tw = [], pr = [], st = S[ch];
+    N.forEach(function (n) { if (n.chars.indexOf(ch) >= 0) (n.kind === "print" ? pr : tw).push(n.note); });
+    if (!tw.length && !pr.length && !st) return;
+    var item = "";
+    if (tw.length || st) item += pair(ch, "zh-Hant", "Taiwan", "zh-Hans", "Mainland");
+    if (pr.length) item += pair(ch, pl, "Print", pl, "Handwritten", " cr-wn-print");
+    tw.concat(pr).forEach(function (t) { item += '<p class="cr-wn-note">' + t + '</p>'; });
+    if (st) item += '<p class="cr-wn-note cr-wn-strokes">Strokes: Taiwan ' + st[0] + ' · Mainland ' + st[1] + '</p>';
+    html += '<div class="cr-wn-item">' + item + '</div>';
+  });
+  if (!html) return;
+  box.querySelector(".cr-wn-body").innerHTML = html;
+  box.hidden = false;
+})();
+</script>

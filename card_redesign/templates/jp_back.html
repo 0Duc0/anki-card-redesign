@@ -1,0 +1,36 @@
+<main class="cr cr-jp cr-back">
+  {{MODE}}
+  <header class="cr-head">
+    <div class="cr-words"><span class="cr-hz" lang="ja">{{Word}}</span></div>
+    {{#Reading}}<div class="cr-read cr-read-kana"><span class="cr-py cr-kana" lang="ja">{{Reading}}</span></div>{{/Reading}}
+    <div class="cr-read cr-read-audio">
+      <span class="cr-play">{{#AudioText}}{{AudioText}}{{/AudioText}}{{^AudioText}}{{#Reading}}{{tts ja_JP:Reading}}{{/Reading}}{{/AudioText}}</span>
+      {{#WordType}}<span class="cr-tag">{{WordType}}</span>{{/WordType}}
+      {{#JLPTLevel}}<span class="cr-tag">{{JLPTLevel}}</span>{{/JLPTLevel}}
+    </div>
+    {{WRITING}}
+  </header>
+
+  <section class="cr-meanings">
+    {{MainSenses}}
+    {{#OtherMeanings}}<p class="m-also"><span class="m-label">also</span> {{OtherMeanings}}</p>{{/OtherMeanings}}
+    {{#UsageNotes}}<p class="cr-usage">{{UsageNotes}}</p>{{/UsageNotes}}
+    {{#AllDefinitions}}<details class="cr-dict"><summary>Full dictionary entry</summary>{{AllDefinitions}}</details>{{/AllDefinitions}}
+  </section>
+
+  {{#RecognitionAlternativesHTML}}<section class="cr-homographs"><h2 class="cr-h">Same spelling, other words</h2><div lang="ja">{{RecognitionAlternativesHTML}}</div></section>{{/RecognitionAlternativesHTML}}
+
+  {{#OtherForms}}<section class="cr-forms"><h2 class="cr-h">Other written forms</h2><p lang="ja">{{OtherForms}}</p></section>{{/OtherForms}}
+
+  {{#ExampleJP}}<section class="cr-examples">{{ExampleJP}}</section>{{/ExampleJP}}
+
+  {{#PersonalNotes}}<section class="cr-notes"><h2 class="cr-h">Notizen</h2>{{PersonalNotes}}</section>{{/PersonalNotes}}
+
+  {{STROKES}}
+
+
+  <footer class="cr-foot">
+    <div class="cr-level">{{JLPTLevel}} · {{WordType}}{{#PartOfSpeech}} · {{PartOfSpeech}}{{/PartOfSpeech}}</div>
+    <div class="cr-src-line">Sources: {{Source}} · JMdict {{EntryID}}{{#AudioText}} · word audio Kanji alive (human recording){{/AudioText}}</div>
+  </footer>
+</main>

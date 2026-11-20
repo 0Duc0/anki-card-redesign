@@ -1,0 +1,56 @@
+[
+ {
+  "lang": "cn",
+  "kind": "print",
+  "chars": "巡辵辶辷辸边辺辻込辽达辿迀迁迂迃迄迅迆过迈迉迊迋迌迍迎迏运近迒迓返迕迖迗还这迚进远违连迟迠迡迢迣迤迥迦迧迨迩迪迫迬迭迮迯述迱迲迳迴迵迶迷迸迹迺迻迼追迾迿退送适逃逄逅逆逇逈选逊逋逌逍逎透逐逑递逓途逕逖逗逘這通逛逜逝逞速造逡逢連逤逥逦逧逨逩逪逫逬逭逮逯逰週進逳逴逵逶逷逸逹逺逻逼逽逾逿遀遁遂遃遄遅遆遇遈遉遊運遌遍過遏遐遑遒道達違遖遗遘遙遚遛遜遝遞遟遠遡遢遣遤遥遦遧遨適遪遫遬遭遮遯遰遱遲遳遴遵遶遷選遹遺遻遼遽遾避邀邁邂邃還邅邆邇邈邉邊邋邌邍邎邏邐",
+  "note": "Printed mainland fonts draw the middle of 辶 as a straight hook. By hand it is a zigzag, in Taiwan and on the mainland."
+ },
+ {
+  "lang": "cn",
+  "kind": "twcn",
+  "chars": "骨骩骪骫骬骭骮骯骰骱骲骳骴骵骶骷骸骹骺骻骼骽骾骿髀髁髂髃髄髅髆髇髈髉髊髋髌髍髎髏髐髑髒髓體髕髖髗滑猾鶻榾搰",
+  "note": "The small stroke inside the top part of 骨 points the other way in the Taiwan and mainland standards."
+ },
+ {
+  "lang": "cn",
+  "kind": "twcn",
+  "chars": "咸感減减鹹喊憾撼緘缄箴碱鍼葴",
+  "note": "The long left stroke of 咸 goes almost straight down in the Taiwan standard and curves to the left in the mainland standard."
+ },
+ {
+  "lang": "cn",
+  "kind": "twcn",
+  "chars": "次姿資资恣瓷茨羨羡盜盗諮咨粢",
+  "note": "The two short strokes on the left of 次 are shaped differently in the Taiwan and mainland standards."
+ },
+ {
+  "lang": "cn",
+  "kind": "twcn",
+  "chars": "夕多外名夠够夢梦舛岁罗萝箩逻侈哆移爹",
+  "note": "夕: in the Taiwan standard the short dot touches the long left stroke; in the mainland standard it stands free."
+ },
+ {
+  "lang": "cn",
+  "kind": "twcn",
+  "chars": "亮喨",
+  "note": "Bottom of 亮: 儿 in the Taiwan standard, 几 in the mainland standard (几 starts with a stroke that turns right at the top)."
+ },
+ {
+  "lang": "cn",
+  "kind": "twcn",
+  "chars": "角解觸触嘴蟹懈邂斛觥觴觞觚獬廨澥",
+  "note": "角: the middle vertical stroke goes through the bottom stroke in the Taiwan standard; in the mainland standard it stops there."
+ },
+ {
+  "lang": "cn",
+  "kind": "twcn",
+  "chars": "毒",
+  "note": "Bottom of 毒: 毋 (one stroke through the middle) in the Taiwan standard, 母 (two dots) in the mainland standard."
+ },
+ {
+  "lang": "jp",
+  "kind": "print",
+  "chars": "令冷零鈴領齢玲伶怜嶺囹苓羚聆鴒齡澪",
+  "note": "Printed fonts end 令 with a vertical stroke (like 卩). By hand it is usually written like マ. Both are correct (Agency for Cultural Affairs guideline, 2016)."
+ }
+]

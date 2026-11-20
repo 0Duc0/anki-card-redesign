@@ -1,0 +1,32 @@
+/* Chinese */
+/* learning fonts (same pen style, each script in its own standard): Fusion Kai T = Taiwan MOE forms,
+   Fusion Kai G = mainland GB forms. Files ship with the add-on as _cr_*.woff2 in the media folder. */
+@font-face { font-family: "CR Fusion Kai T"; src: url("_cr_FusionKaiT.woff2") format("woff2");
+  unicode-range: U+2E80-2FFF, U+3000-9FFF, U+F900-FAFF, U+FE30-FE4F, U+FF00-FFEF, U+20000-3FFFF; }
+@font-face { font-family: "CR Fusion Kai G"; src: url("_cr_FusionKaiG.woff2") format("woff2");
+  unicode-range: U+2E80-2FFF, U+3000-9FFF, U+F900-FAFF, U+FE30-FE4F, U+FF00-FFEF, U+20000-3FFFF; }
+/* traditional, and script-neutral lines (lang="zh": the main line of every example) */
+.cr-cn [lang^="zh"], .cr-cn [lang="zh"], .cr-cn [lang="zh-Hant"], .cr-cn .cr-hz, .cr-cn .cr-big {
+  font-family: "CR Fusion Kai T", "PingFang TC", "Noto Sans CJK TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+}
+.cr-cn [lang="zh-Hans"] {
+  font-family: "CR Fusion Kai G", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+/* pinyin and English stay in the normal font */
+.cr-cn .cr-py, .cr-cn .ex-r, .cr-cn .ex-t { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif; }
+.show-simp [data-script="trad"], .show-trad [data-script="simp"] { display: none; }
+.cr-defs[data-pinyins="1"] .r-py { display: none; }
+.meaning-only .pinyin, .meaning-only .pinyin-num { display: none !important; }
+
+/* ScriptDiff = "form": same characters, Taiwan and mainland forms differ -> labels say "form" */
+.cr-cn .l-form { display: none; }
+.cr-cn.sd-form .l-form { display: inline; }
+.cr-cn.sd-form .l-sd { display: none; }
+
+/* same characters in both scripts: Taiwan and mainland rows on the back */
+.cr-same-note { grid-column: 1 / -1; font-size: .72em; color: var(--faint); margin: 2px 0 0; text-align: center; }
+.cr-wn-item .cr-wn-pair + .cr-wn-pair { margin-top: 8px; }
+.cr-wn-strokes { color: var(--faint); }
+
+/* several traditional forms: short meaning next to each, "or" rows (back only) */
+.cr-stack .cr-w-g { grid-column: 3; justify-self: start; font-size: .78em; color: var(--soft); line-height: 1.25; max-width: 9em; }

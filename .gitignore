@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+dist/
+*.ankiaddon
+card_redesign/user_files/
+card_redesign/meta.json
+tests/fixtures/
+.ruff_cache/

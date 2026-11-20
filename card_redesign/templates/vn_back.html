@@ -1,0 +1,26 @@
+<main class="cr cr-vn cr-back">
+  {{MODE}}
+  <header class="cr-head">
+    <div class="cr-words"><span class="cr-hz cr-vi" lang="vi">{{Vietnamese}}</span></div>
+    <div class="cr-read">
+      <span class="cr-play">{{#HumanAudioPrimaryHTML}}{{HumanAudioPrimaryHTML}}{{/HumanAudioPrimaryHTML}}{{^HumanAudioPrimaryHTML}}{{tts vi_VN:Vietnamese}}{{/HumanAudioPrimaryHTML}}</span>
+      {{#PartOfSpeech}}<span class="cr-tag">{{PartOfSpeech}}</span>{{/PartOfSpeech}}
+      {{#Tier}}<span class="cr-tag">{{Tier}}</span>{{/Tier}}
+    </div>
+    {{#HumanAudioAlternativesHTML}}<div class="cr-alts">Other recordings: {{HumanAudioAlternativesHTML}}</div>{{/HumanAudioAlternativesHTML}}
+  </header>
+
+  <section class="cr-meanings">
+    <p class="cr-gloss">{{English}}</p>
+    {{DetailsHTML}}
+  </section>
+
+  {{#ExampleVietnamese}}<section class="cr-examples">{{ExampleVietnamese}}</section>{{/ExampleVietnamese}}
+
+  {{#Notizen}}<section class="cr-notes"><h2 class="cr-h">Notizen</h2>{{Notizen}}</section>{{/Notizen}}
+
+  <footer class="cr-foot">
+    {{#Frequency}}<div class="cr-level">{{Frequency}}{{#Tier}} · {{Tier}}{{/Tier}}</div>{{/Frequency}}
+    <div class="cr-src-line">Sources: {{SourcesHTML}}</div>
+  </footer>
+</main>

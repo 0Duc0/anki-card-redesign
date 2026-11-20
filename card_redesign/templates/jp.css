@@ -1,0 +1,36 @@
+/* Japanese */
+/* learning font: Fusion Kai J = Japanese standard forms in a pen-written (textbook-like) style */
+@font-face { font-family: "CR Fusion Kai J"; src: url("_cr_FusionKaiJ.woff2") format("woff2");
+  unicode-range: U+2E80-2FFF, U+3000-9FFF, U+F900-FAFF, U+FE30-FE4F, U+FF00-FFEF, U+20000-3FFFF; }
+.cr-jp [lang="ja"], .cr-jp .cr-hz {
+  font-family: "CR Fusion Kai J", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Noto Sans JP", "Yu Gothic", "Meiryo", sans-serif;
+}
+/* the kana reading row stays in the normal font */
+.cr-jp .cr-kana {
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Noto Sans JP", "Yu Gothic", "Meiryo", sans-serif;
+}
+.cr-kana { font-size: 1.2em; }
+.cr-hint { margin-top: 14px; color: var(--soft); font-size: .9em; }
+.cr-dict > div { margin: 0 0 4px !important; }
+/* fronts never show the answers; the reading hint gives way to a context caption */
+.cr-front .deck-recognition-details { display: none; }
+.cr-hint:has(.deck-recognition-context) .cr-kana { display: none; }
+.cr-back .deck-recognition-context { display: none; }
+.cr-prompt .practice-word { font-size: clamp(40px, 10.5vw, 64px); font-weight: 500; line-height: 1.2; margin: 6px 0; }
+.cr-prompt .disambig-hint, .cr-prompt .production-form-hint, .cr-prompt .read-aloud p, .cr-prompt .recall-context,
+.cr-prompt .reading-instruction, .cr-prompt .reading-meaning { font-size: .62em; font-weight: 520; }
+.cr-prompt .reading-instruction { color: var(--faint); }
+/* Meaning → Japanese prompt (cr-prod): English first, hints small underneath */
+.cr-forms { padding: 10px 0 2px; border-top: 1px solid var(--line); margin-top: 12px; font-size: .92em; }
+.cr-jp .cr-dict { margin-top: 8px; color: var(--soft); font-size: .9em; }
+.cr-jp .cr-dict > summary { cursor: pointer; color: var(--faint); font-size: .85em; }
+
+/* other readings of the same written form (merged notes) */
+.cr-homog ul { list-style: none; padding: 0; margin: 4px 0 0; }
+.cr-homog li { margin: 3px 0; }
+.cr-homog .h-r { font-weight: 600; margin-right: 6px; }
+.cr-homog .h-p { color: var(--faint); font-size: .85em; }
+
+/* kana on its own line, audio button and tags underneath (user 2026-11-19) */
+.cr-read-kana { margin-bottom: 2px; }
+.cr-read-audio { margin-top: 0; }
